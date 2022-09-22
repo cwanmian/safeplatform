@@ -1,5 +1,7 @@
-import { Carousel } from 'antd';
+import {Carousel} from 'antd';
 import React from 'react';
+import BugStatistic from "./Components/BugStatistic";
+
 const contentStyle = {
     height: '160px',
     color: '#fff',
@@ -13,20 +15,7 @@ const App = () => {
         console.log(currentSlide);
     };
     return (
-        <Carousel afterChange={onChange}>
-            <div>
-                <h3 style={contentStyle}>1</h3>
-            </div>
-            <div>
-                <h3 style={contentStyle}>2</h3>
-            </div>
-            <div>
-                <h3 style={contentStyle}>3</h3>
-            </div>
-            <div>
-                <h3 style={contentStyle}>4</h3>
-            </div>
-        </Carousel>
+        <BugStatistic/>
     );
 };
 

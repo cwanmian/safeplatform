@@ -1,0 +1,6 @@
+.expandedRow td{
+    padding: 0!important;
+}
+.ant-table-expanded-row-fixed{
+    padding: 5px!important;
+}

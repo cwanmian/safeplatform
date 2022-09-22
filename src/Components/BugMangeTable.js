@@ -3,6 +3,8 @@ import {PlusOutlined} from '@ant-design/icons'
 import React, {Fragment, useState} from 'react'
 import {Select, Modal} from "antd"
 import AddBugForm from "./AddBugForm"
+import BugTableRowExpan from "./BugTableRowExpan"
+import "./BugManageTable.css"
 const {Option} = Select
 
 
@@ -10,13 +12,14 @@ const App = () => {
     const columns = [
         {
             title: '编号',
+            align:"center",
+            width:80,
             dataIndex: 'bianhao',
             key: 'bianhao',
             render: (text, b) => {
-                console.dir(b)
-                console.dir(text)
                 return (<a>{text}</a>)
             },
+            fixed:"left"
         },
         {
             title: '问题状态',
@@ -61,12 +64,7 @@ const App = () => {
         {
             title: '具体问题',
             key: 'content',
-            render: (_, record) => (
-                <Space size="middle">
-                    <a>Invite {record.name}</a>
-                    <a>Delete</a>
-                </Space>
-            ),
+            dataIndex: 'content',
         },
     ]
     const data = [
@@ -76,6 +74,7 @@ const App = () => {
             state: "普联UAT测试通过",
             shuxing: 'BUG',
             bankuai: "移动端指挥中心",
+            content: "pad端登陆，点击智慧安全，弹出密码错误界面"
         },
         {
             key: '2',
@@ -83,6 +82,7 @@ const App = () => {
             state: "搁置",
             shuxing: 'optimize',
             bankuai: "人员信息",
+            content: "修改新增应急组织人员提示"
         },
         {
             key: '3',
@@ -90,6 +90,7 @@ const App = () => {
             state: "开发处理中",
             shuxing: 'yunweichuli',
             bankuai: "学习强安",
+            content: "修改新增应急组织人员提示"
         },
     ]
     const [showAddmodal, setAddmodal] = useState(false)
@@ -109,7 +110,7 @@ const App = () => {
 
         }, 500)
     }
-    const onCloseDrawer=()=>{
+    const onCloseDrawer = () => {
         setAddmodal(false)
     }
     const handleCancel = () => {
@@ -121,7 +122,14 @@ const App = () => {
     return (
         <Fragment>
             <Button type="primary" icon={<PlusOutlined/>} style={{margin: 10}} onClick={showAddBugModal}>提交Bug</Button>
-            <Table columns={columns} dataSource={data} size="small"/>
+            <Table columns={columns} dataSource={data} size="small" scroll={{
+                x: 1300,
+            }} expandable={{
+                expandedRowRender: (record) => (<BugTableRowExpan/>),
+                defaultExpandAllRows:()=>true,
+                expandedRowClassName:()=>("expandedRow"),
+                showExpandColumn:false
+            }}/>
             <Modal
                 title="确定修改么"
                 open={visible}
@@ -133,7 +141,8 @@ const App = () => {
             >
                 <p>{modalText}</p>
             </Modal>
-            <Drawer title="提交Bug" placement="right" onClose={onCloseDrawer} open={showAddmodal}>
+            <Drawer width={600} title="提交Bug" placement="right" onClose={onCloseDrawer} open={showAddmodal}
+                    destroyOnClose>
                 <AddBugForm/>
             </Drawer>
         </Fragment>
