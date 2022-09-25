@@ -8,7 +8,6 @@ import {useDispatch, useSelector} from "react-redux";
 import Body1 from "./Body1";
 import BugMangeTable from "./Components/BugMangeTable";
 import {useEffect} from "react";
-import {Fragment} from "react";
 import axios from "axios";
 
 const {Content, Footer, Sider, Header} = Layout;
@@ -132,14 +131,13 @@ const App = () => {
             </Sider>
             <Layout>
                 <Header
-                    className="site-layout-background"
+                    className="site-layout-background header"
                     style={{
                         padding: 0,
                     }}
                 >
-                    {showSkeleton ? "" : <Row>
-                        <Col span={20}></Col>
-                        <Col span={4}>
+                    {showSkeleton ? "" : <Row justify="end">
+                        <Col>
                             <Dropdown overlay={Avatarmenu} placement="bottom" trigger={['click']}>
                                 <Space size="small" style={{cursor: "pointer", userSelect: "none"}}>
                                     <Avatar icon={<UserOutlined/>}></Avatar>
@@ -164,7 +162,7 @@ const App = () => {
                         {showSkeleton?<Skeleton active/>:<Body></Body>}
                     </div>
                 </Content>
-                <Footer
+                <Footer className="footer"
                     style={{
                         textAlign: 'center',
                     }}
