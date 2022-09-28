@@ -1,19 +1,27 @@
-import {Button, Drawer, Dropdown, Image, Menu, Popconfirm, Row, Space, Table, Tag, Tooltip} from 'antd'
-import {FileAddFilled, PlusOutlined} from '@ant-design/icons'
+import {
+    Button, Col,
+    message,
+    Pagination,
+    Row,
+    Table
+} from 'antd'
+import {PlusOutlined, CaretRightOutlined} from '@ant-design/icons'
 import React, {Fragment, useEffect, useState} from 'react'
-import {Select, Modal} from "antd"
-import AddBugForm from "./AddBugForm"
 import BugTableRowExpan from "./BugTableRowExpan"
 import "./BugManageTable.css"
-import TextArea from "antd/es/input/TextArea";
 import TextareaConfirm from "./TextareaConfirm";
 import IamgesCell from "./IamgesCell";
-
-const {Option} = Select
+import DateSelector from "./DateSelector";
+import {useDispatch, useSelector} from "react-redux";
+import axios from "axios";
+import Switcher from "./Switcher";
+import Selector from "./Selector";
 
 
 const App = () => {
     useEffect(() => {
+        console.log("tablestart")
+        getdata()
         window.addEventListener("resize", () => {
             if (window.innerWidth < 500) {
                 setfixtable(false)
@@ -25,15 +33,60 @@ const App = () => {
             }
         })
     }, [])
+    const getdata = (type, page = 1, pageSize = 10) => {
+        axios.post("/getBugList", null, {params: {type: "BUG", page, pageSize}}).then((res) => {
+            settableloading(false)
+            if (res.data.code === 200) {
+                let temrowkeys = []
+                let temdata = res.data.res.data.map((item) => {
+                    item["key"] = item["id"] + ""
+                    temrowkeys.push(item["key"])
+                    return item
+                })
+                setexpandedRowKeys(temrowkeys)
+                console.log(temrowkeys)
+                setpagedata(res.data.res.pagedata)
+                setdata(temdata)
+
+            } else {
+                message.error(res.data.res)
+            }
+        }, (res) => {
+            settableloading(false)
+            message.error("通讯错误")
+            console.log(res)
+        })
+    }
+    const dispatch = useDispatch()
     const [fixtable, setfixtable] = useState(window.innerWidth < 500 ? false : true)
     const [tableheight, settableheight] = useState(window.innerWidth > 500 ? window.innerHeight - 370 : window.innerHeight - 250)
+    const [data, setdata] = useState([])
+    const [pagedata, setpagedata] = useState({})
+    const [tableloading, settableloading] = useState(true)
+    const [expandedRowKeys, setexpandedRowKeys] = useState([])
+    const [currentpage, setcurrentpage] = useState(1)
     const columns = [
         {
             title: '编号',
             align: "center",
-            width: 60,
+            width: 85,
             dataIndex: 'bianhao',
             key: 'bianhao',
+            render(text, record) {
+                return (<>
+                    <Row justify="center" style={{cursor: "pointer"}} align="middle" onClick={(e) => {
+                        togglerablerow(e, record)
+                    }}>
+                        <CaretRightOutlined className="icon-CaretRightOutlined icon"/>
+                        <a>{text}</a>
+                    </Row>
+                    <Row>
+                        <Col style={{width: 120}}>
+                            <Switcher col="state2" id={record.id} checked={record.state2}/>
+                        </Col>
+                    </Row>
+                </>)
+            },
             fixed: "left"
         },
         {
@@ -44,7 +97,7 @@ const App = () => {
             fixed: fixtable,
             render(text, record) {
                 return (
-                    <TextareaConfirm text={text}>
+                    <TextareaConfirm text={text} col="content" id={record.id}>
 
                     </TextareaConfirm>
                 )
@@ -55,22 +108,9 @@ const App = () => {
             key: 'bankuai',
             width: 160,
             dataIndex: 'bankuai',
-            render: (text, {bankuai}) => (
+            render: (text, record) => (
                 <>
-                    <Select onSelect={showModal} defaultValue={text} style={{width: 160}} onClick={(e) => {
-                        e.stopPropagation()
-                    }} showArrow={false} bordered={false} optionLabelProp="children">
-                        <Option value="安全人员"><Tag color="blue">安全人员</Tag></Option>
-                        <Option value="安全指数"><Tag color="red">安全指数</Tag></Option>
-                        <Option value="驾驶舱"><Tag color="volcano">驾驶舱</Tag></Option>
-                        <Option value="监督检查"><Tag color="orange">监督检查</Tag></Option>
-                        <Option value="其他"><Tag color="lime">其他</Tag></Option>
-                        <Option value="项目部详情维护"><Tag color="green">项目部详情维护</Tag></Option>
-                        <Option value="学习强安"><Tag color="cyan">学习强安</Tag></Option>
-                        <Option value="移动端指挥中心"><Tag color="cyan">移动端指挥中心</Tag></Option>
-                        <Option value="应急管理"><Tag color="cyan">应急管理</Tag></Option>
-                        <Option value="BI"><Tag color="cyan">BI</Tag></Option>
-                    </Select>
+                    <Selector col="bankuai" id={record.id} value={record.bankuai}/>
                 </>
             ),
         },
@@ -78,21 +118,10 @@ const App = () => {
             title: '问题状态',
             dataIndex: 'state',
             width: 140,
-            key: 'quesstate',
-            render(text) {
-                return <Select onSelect={showModal} defaultValue={text} style={{width: 160}} onClick={(e) => {
-                    e.stopPropagation()
-                }} showArrow={false} bordered={false} optionLabelProp="children">
-                    <Option value="待处理"><Tag color="blue">待处理</Tag></Option>
-                    <Option value="开发处理中"><Tag color="red">开发处理中</Tag></Option>
-                    <Option value="普联UAT测试通过"><Tag color="volcano">普联UAT测试通过</Tag></Option>
-                    <Option value="其他平台处理"><Tag color="orange">其他平台处理</Tag></Option>
-                    <Option value="生产环境待验证"><Tag color="lime">生产环境待验证</Tag></Option>
-                    <Option value="生产环境验证不通过"><Tag color="green">生产环境验证不通过</Tag></Option>
-                    <Option value="中建UAT测试通过"><Tag color="cyan">中建UAT测试通过</Tag></Option>
-                    <Option value="中建UAT验证通过"><Tag color="cyan">中建UAT验证通过</Tag></Option>
-                    <Option value="UAT待测试"><Tag color="cyan">UAT待测试</Tag></Option>
-                </Select>
+            key: 'state',
+            render(text, record) {
+                return <Selector col="state" id={record.id} value={record.state}/>
+
             }
         },
         {
@@ -100,64 +129,48 @@ const App = () => {
             dataIndex: 'shuxing',
             key: 'shuxing',
             width: 140,
-            render(text) {
-                return (
-                    <Select onSelect={showModal} defaultValue={text} style={{width: 120}} onClick={(e) => {
-                        e.stopPropagation()
-                    }} showArrow={false} bordered={false} optionLabelProp="children">
-                        <Option value="BUG"><Tag color="blue">BUG</Tag></Option>
-                        <Option value="优化"><Tag color="red">优化</Tag></Option>
-                        <Option value="运维组处理"><Tag color="volcano">运维组处理</Tag></Option>
-                        <Option value="人力数据问题"><Tag color="orange">人力数据问题</Tag></Option>
-                        <Option value="主数据问题"><Tag color="lime">主数据问题</Tag></Option>
-                        <Option value="财务数据问题"><Tag color="green">财务数据问题</Tag></Option>
-                        <Option value="新增功能"><Tag color="cyan">新增功能</Tag></Option>
-                    </Select>
-                )
+            render(text, record) {
+                return <Selector col="shuxing" id={record.id} value={record.shuxing}/>
+
             }
         },
         {
             title: "问题照片",
-            key: "imges",
+            key: "images",
             width: 200,
-            render(_, {images}) {
+            render(_, record) {
                 return (
-                    <IamgesCell images={images}/>
+                    <IamgesCell images={JSON.parse(record.images)} id={record.id} col="images"/>
                 )
             }
         },
         {
             title: '时限要求',
-            key: 'timeRequire',
-            dataIndex: 'timeRequire',
+            key: 'timerequire',
+            dataIndex: 'timerequire',
             width: 100,
-            render: (text) => (
-                <Select onSelect={showModal} defaultValue={text} style={{width: 120}} onClick={(e) => {
-                    e.stopPropagation()
-                }} showArrow={false} bordered={false} optionLabelProp="children">
-                    <Option value="高"><Tag color="blue">高</Tag></Option>
-                    <Option value="低"><Tag color="red">低</Tag></Option>
-                </Select>
+            render: (text, record) => (
+                <Selector col="timerequire" id={record.id} value={record.timerequire}/>
             ),
         },
         {
             title: '原因及解决措施',
-            key: 'reasonAndFunc',
-            dataIndex: 'reasonAndFunc',
+            key: 'reasonandfunc',
+            dataIndex: 'reasonandfunc',
             width: 260,
-            render: (text) => (
-                <TextareaConfirm text={text}>
+            render: (text, record) => (
+                <TextareaConfirm text={text} col="reasonandfunc" id={record.id}>
 
                 </TextareaConfirm>
             ),
         },
         {
             title: '提出单位',
-            key: 'Proposer',
-            dataIndex: 'Proposer',
+            key: 'proposer',
+            dataIndex: 'proposer',
             width: 150,
-            render: (text) => (
-                <TextareaConfirm text={text}>
+            render: (text, record) => (
+                <TextareaConfirm text={text} col="proposer" id={record.id}>
 
                 </TextareaConfirm>
             ),
@@ -167,39 +180,39 @@ const App = () => {
             key: 'filler',
             dataIndex: 'filler',
             width: 120,
-            render: (text) => (
-                <TextareaConfirm text={text}>
+            render: (text, record) => (
+                <TextareaConfirm text={text} col="filler" id={record.id}>
 
                 </TextareaConfirm>
             ),
         },
         {
             title: '开发负责人',
-            key: 'devDirector',
-            dataIndex: 'devDirector',
+            key: 'devdirector',
+            dataIndex: 'devdirector',
             width: 120,
-            render: (text) => (
-                <TextareaConfirm text={text}>
+            render: (text, record) => (
+                <TextareaConfirm text={text} col="devdirector" id={record.id}>
 
                 </TextareaConfirm>
             ),
         },
         {
             title: '开发完成时间',
-            key: 'devCompleteTime',
-            dataIndex: 'devCompleteTime',
+            key: 'devcompletetime',
+            dataIndex: 'devcompletetime',
             width: 150,
-            render: (text) => (
-                text
+            render: (text,record) => (
+                <DateSelector value={text} clearable={true} id={record.id} col="devcompletetime"/>
             ),
         },
         {
             title: '现场对接',
-            key: 'Counterpart',
-            dataIndex: 'Counterpart',
+            key: 'counterpart',
+            dataIndex: 'counterpart',
             width: 120,
-            render: (text) => (
-                <TextareaConfirm text={text}>
+            render: (text, record) => (
+                <TextareaConfirm text={text} col="counterpart" id={record.id}>
 
                 </TextareaConfirm>
             ),
@@ -209,19 +222,19 @@ const App = () => {
             key: 'tester',
             dataIndex: 'tester',
             width: 120,
-            render: (text) => (
-                <TextareaConfirm text={text}>
+            render: (text, record) => (
+                <TextareaConfirm text={text} col="tester" id={record.id}>
 
                 </TextareaConfirm>
             ),
         },
         {
             title: '升级UAT时间',
-            key: 'upUattime',
-            dataIndex: 'upUattime',
+            key: 'upuattime',
+            dataIndex: 'upuattime',
             width: 150,
-            render: (text) => (
-                text
+            render: (text,record) => (
+                <DateSelector value={text} clearable={true} id={record.id} col="upuattime"/>
             ),
         },
         {
@@ -229,8 +242,8 @@ const App = () => {
             key: 'upprodtime',
             dataIndex: 'upprodtime',
             width: 150,
-            render: (text) => (
-                text
+            render: (text,record) => (
+                <DateSelector value={text} clearable={true} id={record.id} col="upprodtime"/>
             ),
         },
         {
@@ -238,8 +251,8 @@ const App = () => {
             key: 'vertifytime',
             dataIndex: 'vertifytime',
             width: 150,
-            render: (text) => (
-                text
+            render: (text,record) => (
+                <DateSelector value={text} clearable={true} id={record.id} col="vertifytime"/>
             ),
         },
         {
@@ -247,8 +260,8 @@ const App = () => {
             key: 'remarks',
             dataIndex: 'remarks',
             width: 180,
-            render: (text) => (
-                <TextareaConfirm text={text}>
+            render: (text, record) => (
+                <TextareaConfirm text={text} col="remarks" id={record.id}>
 
                 </TextareaConfirm>
             ),
@@ -256,37 +269,39 @@ const App = () => {
         {
             title: '测试端验证图',
             key: 'testvertifyimgs',
-            dataIndex: 'testvertifyimgs',
             width: 200,
-            render: (_, {images}) => (
-                <IamgesCell images={images}/>
-            ),
+            render(_, record) {
+                return (
+                    <IamgesCell images={JSON.parse(record.testvertifyimgs)} id={record.id} col="testvertifyimgs"/>
+                )
+            }
         },
         {
             title: 'UAT测试时间',
             key: 'testuattime',
             dataIndex: 'testuattime',
             width: 150,
-            render: (text) => (
-                text
+            render: (text,record) => (
+                <DateSelector value={text} clearable={true} id={record.id} col="testuattime"/>
             ),
         },
         {
             title: '生产环境验证图',
             key: 'prodtestimgs',
-            dataIndex: 'prodtestimgs',
             width: 200,
-            render: (_, {images}) => (
-                <IamgesCell images={images}/>
-            ),
+            render(text, record) {
+                return (
+                    <IamgesCell images={JSON.parse(record.prodtestimgs)} id={record.id} col="prodtestimgs"/>
+                )
+            }
         },
         {
             title: '生产环境测试时间',
             key: 'prodtestdate',
             dataIndex: 'prodtestdate',
             width: 150,
-            render: (text) => (
-                text
+            render: (text,record) => (
+                <DateSelector value={text} clearable={true} id={record.id} col="prodtestdate"/>
             ),
         },
         {
@@ -294,225 +309,225 @@ const App = () => {
             key: 'requirereviewdate',
             dataIndex: 'requirereviewdate',
             width: 150,
-            render: (text) => (
-                text
+            render: (text,record) => (
+                <DateSelector value={text} clearable={true} id={record.id} col="requirereviewdate"/>
             ),
         }
     ]
-    const data = [
-        {
-            key: '1',
-            bianhao: '121',
-            state: "普联UAT测试通过",
-            shuxing: 'BUG',
-            bankuai: "移动端指挥中心",
-            content: "pad端登陆，点击智慧安全，弹出密码错误界面",
-            images: ["./bg.jpg", "./logo512.png"],
-            timeRequire: "高",
-            reasonAndFunc: "考核这个的逻辑是只要整改了就算整改了, 需要修改",
-            Proposer: "运维组",
-            filler: "王小龙",
-            devDirector: "陈真",
-            devCompleteTime: "2022-09-30",
-            Counterpart: "刘秀",
-            tester: "陈晓红",
-            upUattime: "2022-09-26",
-            upprodtime: "2022-09-26",
-            vertifytime: "2022-09-26",
-            remarks: "需要抓紧时间完成",
-            testvertifyimgs: "",
-            testuattime: "2022-09-26",
-            prodtestimgs: ["bg.jpg"],
-            prodtestdate: "2022-09-26",
-            requirereviewdate: "2022-09-26",
-        },
-        {
-            key: '2',
-            bianhao: '109',
-            state: "搁置",
-            shuxing: '运维组处理',
-            bankuai: "安全指数",
-            content: "修改新增应急组织人员提示",
-            images: ["./bg.jpg"],
-            timeRequire: "高",
-            reasonAndFunc: "考核这个的逻辑是只要整改了就算整改了, 需要修改",
-            Proposer: "运维组",
-            filler: "王小龙",
-            devDirector: "陈真",
-            devCompleteTime: "2022-09-30",
-            Counterpart: "刘秀",
-            tester: "陈晓红",
-            upUattime: "2022-09-26",
-            upprodtime: "2022-09-26",
-            vertifytime: "2022-09-26",
-            remarks: "需要抓紧时间完成",
-            testvertifyimgs: "",
-            testuattime: "2022-09-26",
-            prodtestimgs: ["bg.jpg"],
-            prodtestdate: "2022-09-26",
-            requirereviewdate: "2022-09-26",
-        },
-        {
-            key: '3',
-            bianhao: '57',
-            state: "开发处理中",
-            shuxing: '运维组处理',
-            bankuai: "学习强安",
-            content: "修改新增应急组织人员提示",
-            images: ["./bg.jpg"],
-            timeRequire: "高",
-            reasonAndFunc: "考核这个的逻辑是只要整改了就算整改了, 需要修改",
-            Proposer: "运维组",
-            filler: "王小龙",
-            devDirector: "陈真",
-            devCompleteTime: "2022-09-30",
-            Counterpart: "刘秀",
-            tester: "陈晓红",
-            upUattime: "2022-09-26",
-            upprodtime: "2022-09-26",
-            vertifytime: "2022-09-26",
-            remarks: "需要抓紧时间完成",
-            testvertifyimgs: "",
-            testuattime: "2022-09-26",
-            prodtestimgs: ["bg.jpg"],
-            prodtestdate: "2022-09-26",
-            requirereviewdate: "2022-09-26",
-        },
-        {
-            key: '4',
-            bianhao: '57',
-            state: "开发处理中",
-            shuxing: '运维组处理',
-            bankuai: "学习强安",
-            content: "修改新增应急组织人员提示",
-            images: ["./bg.jpg"],
-            timeRequire: "高",
-            reasonAndFunc: "考核这个的逻辑是只要整改了就算整改了, 需要修改",
-            Proposer: "运维组",
-            filler: "王小龙",
-            devDirector: "陈真",
-            devCompleteTime: "2022-09-30",
-            Counterpart: "刘秀",
-            tester: "陈晓红",
-            upUattime: "2022-09-26",
-            upprodtime: "2022-09-26",
-            vertifytime: "2022-09-26",
-            remarks: "需要抓紧时间完成",
-            testvertifyimgs: "",
-            testuattime: "2022-09-26",
-            prodtestimgs: ["bg.jpg"],
-            prodtestdate: "2022-09-26",
-            requirereviewdate: "2022-09-26",
-        },
-        {
-            key: '5',
-            bianhao: '57',
-            state: "开发处理中",
-            shuxing: '运维组处理',
-            bankuai: "学习强安",
-            content: "修改新增应急组织人员提示",
-            images: ["./bg.jpg"],
-            timeRequire: "高",
-            reasonAndFunc: "考核这个的逻辑是只要整改了就算整改了, 需要修改",
-            Proposer: "运维组",
-            filler: "王小龙",
-            devDirector: "陈真",
-            devCompleteTime: "2022-09-30",
-            Counterpart: "刘秀",
-            tester: "陈晓红",
-            upUattime: "2022-09-26",
-            upprodtime: "2022-09-26",
-            vertifytime: "2022-09-26",
-            remarks: "需要抓紧时间完成",
-            testvertifyimgs: "",
-            testuattime: "2022-09-26",
-            prodtestimgs: ["bg.jpg"],
-            prodtestdate: "2022-09-26",
-            requirereviewdate: "2022-09-26",
-        },
-        {
-            key: '6',
-            bianhao: '57',
-            state: "开发处理中",
-            shuxing: '运维组处理',
-            bankuai: "学习强安",
-            content: "修改新增应急组织人员提示",
-            images: ["./bg.jpg"],
-            timeRequire: "高",
-            reasonAndFunc: "考核这个的逻辑是只要整改了就算整改了, 需要修改",
-            Proposer: "运维组",
-            filler: "王小龙",
-            devDirector: "陈真",
-            devCompleteTime: "2022-09-30",
-            Counterpart: "刘秀",
-            tester: "陈晓红",
-            upUattime: "2022-09-26",
-            upprodtime: "2022-09-26",
-            vertifytime: "2022-09-26",
-            remarks: "需要抓紧时间完成",
-            testvertifyimgs: "",
-            testuattime: "2022-09-26",
-            prodtestimgs: ["bg.jpg"],
-            prodtestdate: "2022-09-26",
-            requirereviewdate: "2022-09-26",
-        },
-    ]
-
-    const [showAddmodal, setAddmodal] = useState(false)
-    const [modalvisible, setmodalvisible] = useState(false)
-    const [PreviewVisible, setPreviewVisible] = useState(false)
-    const [confirmLoading, setConfirmLoading] = useState(false)
-    const [modalText, setModalText] = useState('确定修改么，你的操作将记入日志')
-    const showModal = () => {
-        setmodalvisible(true)
+    // const data = [
+    //     {
+    //         key: '0',
+    //         bianhao: '121',
+    //         state: "普联UAT测试通过",
+    //         shuxing: 'BUG',
+    //         bankuai: "移动端指挥中心",
+    //         content: "pad端登陆，点击智慧安全，弹出密码错误界面",
+    //         images: ["./bg.jpg", "./logo512.png"],
+    //         timerequire: "高",
+    //         reasonandfunc: "考核这个的逻辑是只要整改了就算整改了, 需要修改",
+    //         proposer: "运维组",
+    //         filler: "王小龙",
+    //         startdate: "2022-09-30",
+    //         planoverdate: "2022-09-30",
+    //         devdirector: "陈真",
+    //         devcompletetime: "2022-09-30",
+    //         counterpart: "刘秀",
+    //         tester: "陈晓红",
+    //         upuattime: "2022-09-26",
+    //         upprodtime: "2022-09-26",
+    //         vertifytime: "",
+    //         remarks: "需要抓紧时间完成",
+    //         testvertifyimgs: "",
+    //         testuattime: "2022-09-26",
+    //         prodtestimgs: ["bg.jpg"],
+    //         prodtestdate: "2022-09-26",
+    //         requirereviewdate: "2022-09-26",
+    //     },
+    //     {
+    //         key: '1',
+    //         bianhao: '121',
+    //         state: "普联UAT测试通过",
+    //         shuxing: 'BUG',
+    //         bankuai: "移动端指挥中心",
+    //         content: "pad端登陆，点击智慧安全，弹出密码错误界面",
+    //         images: ["./bg.jpg", "./logo512.png"],
+    //         timerequire: "高",
+    //         reasonandfunc: "考核这个的逻辑是只要整改了就算整改了, 需要修改",
+    //         proposer: "运维组",
+    //         filler: "王小龙",
+    //         startdate: "2022-09-30",
+    //         planoverdate: "2022-09-30",
+    //         devdirector: "陈真",
+    //         devcompletetime: "2022-09-30",
+    //         counterpart: "刘秀",
+    //         tester: "陈晓红",
+    //         upuattime: "2022-09-26",
+    //         upprodtime: "2022-09-26",
+    //         vertifytime: "",
+    //         remarks: "需要抓紧时间完成",
+    //         testvertifyimgs: "",
+    //         testuattime: "2022-09-26",
+    //         prodtestimgs: ["bg.jpg"],
+    //         prodtestdate: "2022-09-26",
+    //         requirereviewdate: "2022-09-26",
+    //     },
+    //     {
+    //         key: '2',
+    //         bianhao: '121',
+    //         state: "普联UAT测试通过",
+    //         shuxing: 'BUG',
+    //         bankuai: "移动端指挥中心",
+    //         content: "pad端登陆，点击智慧安全，弹出密码错误界面",
+    //         images: ["./bg.jpg", "./logo512.png"],
+    //         timerequire: "高",
+    //         reasonandfunc: "考核这个的逻辑是只要整改了就算整改了, 需要修改",
+    //         proposer: "运维组",
+    //         filler: "王小龙",
+    //         startdate: "2022-09-30",
+    //         planoverdate: "2022-09-30",
+    //         devdirector: "陈真",
+    //         devcompletetime: "2022-09-30",
+    //         counterpart: "刘秀",
+    //         tester: "陈晓红",
+    //         upuattime: "2022-09-26",
+    //         upprodtime: "2022-09-26",
+    //         vertifytime: "",
+    //         remarks: "需要抓紧时间完成",
+    //         testvertifyimgs: "",
+    //         testuattime: "2022-09-26",
+    //         prodtestimgs: ["bg.jpg"],
+    //         prodtestdate: "2022-09-26",
+    //         requirereviewdate: "2022-09-26",
+    //     },
+    //     {
+    //         key: '3',
+    //         bianhao: '121',
+    //         state: "普联UAT测试通过",
+    //         shuxing: 'BUG',
+    //         bankuai: "移动端指挥中心",
+    //         content: "pad端登陆，点击智慧安全，弹出密码错误界面",
+    //         images: ["./bg.jpg", "./logo512.png"],
+    //         timerequire: "高",
+    //         reasonandfunc: "考核这个的逻辑是只要整改了就算整改了, 需要修改",
+    //         proposer: "运维组",
+    //         filler: "王小龙",
+    //         startdate: "2022-09-30",
+    //         planoverdate: "2022-09-30",
+    //         devdirector: "陈真",
+    //         devcompletetime: "2022-09-30",
+    //         counterpart: "刘秀",
+    //         tester: "陈晓红",
+    //         upuattime: "2022-09-26",
+    //         upprodtime: "2022-09-26",
+    //         vertifytime: "",
+    //         remarks: "需要抓紧时间完成",
+    //         testvertifyimgs: "",
+    //         testuattime: "2022-09-26",
+    //         prodtestimgs: ["bg.jpg"],
+    //         prodtestdate: "2022-09-26",
+    //         requirereviewdate: "2022-09-26",
+    //     },
+    //     {
+    //         key: '4',
+    //         bianhao: '121',
+    //         state: "普联UAT测试通过",
+    //         shuxing: 'BUG',
+    //         bankuai: "移动端指挥中心",
+    //         content: "pad端登陆，点击智慧安全，弹出密码错误界面",
+    //         images: ["./bg.jpg", "./logo512.png"],
+    //         timerequire: "高",
+    //         reasonandfunc: "考核这个的逻辑是只要整改了就算整改了, 需要修改",
+    //         proposer: "运维组",
+    //         filler: "王小龙",
+    //         startdate: "2022-09-30",
+    //         planoverdate: "2022-09-30",
+    //         devdirector: "陈真",
+    //         devcompletetime: "2022-09-30",
+    //         counterpart: "刘秀",
+    //         tester: "陈晓红",
+    //         upuattime: "2022-09-26",
+    //         upprodtime: "2022-09-26",
+    //         vertifytime: "",
+    //         remarks: "需要抓紧时间完成",
+    //         testvertifyimgs: "",
+    //         testuattime: "2022-09-26",
+    //         prodtestimgs: ["bg.jpg"],
+    //         prodtestdate: "2022-09-26",
+    //         requirereviewdate: "2022-09-26",
+    //     },
+    //     {
+    //         key: '5',
+    //         bianhao: '121',
+    //         state: "普联UAT测试通过",
+    //         shuxing: 'BUG',
+    //         bankuai: "移动端指挥中心",
+    //         content: "pad端登陆，点击智慧安全，弹出密码错误界面",
+    //         images: ["./bg.jpg", "./logo512.png"],
+    //         timerequire: "高",
+    //         reasonandfunc: "考核这个的逻辑是只要整改了就算整改了, 需要修改",
+    //         proposer: "运维组",
+    //         filler: "王小龙",
+    //         startdate: "2022-09-30",
+    //         planoverdate: "2022-09-30",
+    //         devdirector: "陈真",
+    //         devcompletetime: "2022-09-30",
+    //         counterpart: "刘秀",
+    //         tester: "陈晓红",
+    //         upuattime: "2022-09-26",
+    //         upprodtime: "2022-09-26",
+    //         vertifytime: "",
+    //         remarks: "需要抓紧时间完成",
+    //         testvertifyimgs: "",
+    //         testuattime: "2022-09-26",
+    //         prodtestimgs: ["bg.jpg"],
+    //         prodtestdate: "2022-09-26",
+    //         requirereviewdate: "2022-09-26",
+    //     },
+    // ]
+    const togglerablerow = (e, record) => {
+        let contentnode = e.currentTarget.parentNode.parentNode.nextSibling.firstChild.firstChild.firstChild
+        if (contentnode.style.height === "0px") {
+            e.currentTarget.firstChild.className = "icon-CaretRightOutlined icon icon-CaretRightOutlined-rotate"
+            contentnode.style.height = contentnode.scrollHeight + "px"
+            contentnode.parentNode.parentNode.className = "ant-table-cell"
+        } else {
+            e.currentTarget.firstChild.className = "icon-CaretRightOutlined icon"
+            contentnode.style.height = "0px"
+            contentnode.parentNode.parentNode.className = "ant-table-cell td-noborder"
+        }
     }
-    const handleOk = () => {
-        setModalText('修改中，请等待')
-        setConfirmLoading(true)
-        setTimeout(() => {
-            setmodalvisible(false)
-            setConfirmLoading(false)
-            setModalText('确定修改么，你的操作将记入日志')
-
-        }, 500)
-    }
-    const onCloseDrawer = () => {
-        setAddmodal(false)
-    }
-    const handleCancel = () => {
-        setmodalvisible(false)
+    const handlePageChange = (page, pageSize) => {
+        settableloading(true);
+        getdata("BUG", page, pageSize);
+        setcurrentpage(page)
     }
     const showAddBugModal = () => {
-        setAddmodal(true)
+        dispatch({type: "open", data: ""})
     }
     return (
         <Fragment>
             <Button type="primary" icon={<PlusOutlined/>} style={{margin: 10}} onClick={showAddBugModal}>提交Bug</Button>
-            <Table columns={columns} dataSource={data} size="small" scroll={{
+            <Table pagination={false}
+                   loading={tableloading}
+                   columns={columns} dataSource={data} size="small" scroll={{
                 x: 1200,
                 y: tableheight
             }} expandable={{
-                expandedRowRender: (record) => (<BugTableRowExpan/>),
-                defaultExpandAllRows: () => true,
+                expandedRowKeys: expandedRowKeys,
+                expandedRowRender: (record) => (<BugTableRowExpan {...record}/>),
                 expandedRowClassName: () => ("expandedRow"),
                 showExpandColumn: false,
-                expandRowByClick: false
+                expandRowByClick: true
             }}/>
-            <Modal
-                title="确定修改么"
-                open={modalvisible}
-                onOk={handleOk}
-                confirmLoading={confirmLoading}
-                onCancel={handleCancel}
-                cancelText={"取消"}
-                okText={"确定"}
-            >
-                <p>{modalText}</p>
-            </Modal>
-            <Drawer width={600} title="提交Bug" placement="right" onClose={onCloseDrawer} open={showAddmodal}
-                    destroyOnClose>
-                <AddBugForm/>
-            </Drawer>
+            <Pagination showTotal={(total) => `总共 ${total} 条`}
+                        style={{marginTop: 20}} size="small"
+                        total={pagedata.total}
+                        current={currentpage}
+                        showSizeChanger showQuickJumper
+                        onChange={(page, pageSize) => {
+                            handlePageChange(page, pageSize)
+                        }}
+            />
         </Fragment>
     )
 }

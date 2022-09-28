@@ -44,8 +44,8 @@
 }
 
 div::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 6px;
+    height: 6px;
 }
 
 div::-webkit-scrollbar-track {
@@ -61,5 +61,25 @@ div::-webkit-scrollbar-thumb:hover {
 }
 
 div::-webkit-scrollbar-thumb:active {
+    background: rgb(68, 68, 68);
+}
+textarea::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+textarea::-webkit-scrollbar-track {
+    background: rgb(179, 177, 177);
+}
+
+textarea::-webkit-scrollbar-thumb {
+    background: rgb(136, 136, 136);
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+    background: rgb(100, 100, 100);
+}
+
+textarea::-webkit-scrollbar-thumb:active {
     background: rgb(68, 68, 68);
 }

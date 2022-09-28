@@ -4,3 +4,16 @@
 .ant-table-expanded-row-fixed{
     padding: 5px!important;
 }
+.icon-CaretRightOutlined{
+    color: #1890ff;
+}
+.icon-CaretRightOutlined-rotate{
+    color: #1890ff;
+    transform: rotate(90deg);
+}
+.icon{
+    transition: all 0.5s;
+}
+.td-noborder{
+    border: 0!important;
+}

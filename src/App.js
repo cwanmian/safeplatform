@@ -9,7 +9,7 @@ import Body1 from "./Body1";
 import BugMangeTable from "./Components/BugMangeTable";
 import {useEffect} from "react";
 import axios from "axios";
-
+import AddBugForm from "./Components/AddBugForm";
 const {Content, Footer, Sider, Header} = Layout;
 ConfigProvider.config({
     theme: {
@@ -20,6 +20,8 @@ const App = () => {
     useEffect(() => {
         getuserinfo()
     }, [])
+    console.log("初始化")
+    axios.defaults.baseURL="http://localhost:8383"
     const [userinfo, setuserinfo] = useState({})
     const [showSkeleton, setshowSkeleton] = useState(!true)
     const [fullLogo, setFullLogo] = useState(true)
@@ -65,7 +67,7 @@ const App = () => {
         </svg>)
     const LogoutIcon=(props)=><Icon component={logoutSvg} {...props}></Icon>
     const getuserinfo = () => {
-        axios.post("./getUserInfo").then((res) => {
+        axios.post("/getUserInfo").then((res) => {
             console.log(res)
             if (res.data.code === 200) {
                 setshowSkeleton(false)
@@ -160,6 +162,10 @@ const App = () => {
                         }}
                     >
                         {showSkeleton?<Skeleton active/>:<Body></Body>}
+                        <Drawer width={window.innerWidth<600?"100%":600} title="提交Bug" placement="right" onClose={()=>{dispatch({type:"close",data:""})}} open={useSelector((state)=>state.AddFormDrawerReducer.open)}
+                                destroyOnClose>
+                            <AddBugForm/>
+                        </Drawer>
                     </div>
                 </Content>
                 <Footer className="footer"

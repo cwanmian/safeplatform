@@ -35,12 +35,7 @@ const Body = () => {
     };
     const Tabitems=initialPanes.map((item)=>({label: item.title, key: item.key, children: item.content,closable:item.closable}))
     return (
-        <Tabs size="small" type="editable-card" onChange={onChange} activeKey={activeKey} onEdit={onEdit} items={Tabitems} hideAdd>
-            {/*{initialPanes.map((pane) => (
-                <TabPane tab={pane.title} key={pane.key} closable={pane.closable}>
-                    {pane.content}
-                </TabPane>
-            ))}*/}
+        <Tabs size="small" type="editable-card" onChange={onChange} activeKey={activeKey} onEdit={onEdit} items={Tabitems} hideAdd destroyInactiveTabPane={false}>
         </Tabs>
     );
 };
