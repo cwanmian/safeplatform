@@ -1,8 +1,12 @@
 .site-layout-sub-header-background {
     background: #fff;
 }
-
 @media screen and (max-width: 500px) {
+    .header, .footer {
+        display: none;
+    }
+}
+@media screen and (max-height: 500px) {
     .header, .footer {
         display: none;
     }
@@ -13,9 +17,11 @@
 }
 
 .logo {
+    width: 100%;
+    overflow: hidden;
     user-select: none;
     height: 32px;
-    margin: 16px;
+    margin: 16px 0;
     background: rgba(255, 255, 255, 0);
     font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
     color: #00448b;
@@ -27,9 +33,11 @@
 }
 
 .minilogo {
+    width: 100%;
+    overflow: hidden;
     user-select: none;
     height: 32px;
-    margin: 16px;
+    margin: 16px 0;
     background: rgba(38, 45, 95, 0);
     font-family: Consolas, 'Liberation Mono', Menlo, Courier, monospace;
     color: #00448b;
@@ -82,4 +90,11 @@ textarea::-webkit-scrollbar-thumb:hover {
 
 textarea::-webkit-scrollbar-thumb:active {
     background: rgb(68, 68, 68);
+}
+.sider-footer{
+    width: 100%;
+    color: #a0a0a0;
+    position: absolute;
+    bottom: 50px;
+    text-align: center;
 }

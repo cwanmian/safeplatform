@@ -29,7 +29,6 @@ const App = ({text,col,id}) => {
         textareafocus.current = 0
         setshowTextarera(false)
     }
-
     const handleOk = (e) => {
         e.stopPropagation()
         setConfirmLoading(true)
@@ -91,7 +90,8 @@ const App = ({text,col,id}) => {
                 <>{showTextarera ?
                     <TextArea autoFocus bordered={true} style={{height: textareaheight}} onChange={handleChange}
                               value={content}
-                              onBlur={handleblur}></TextArea> :
+                              onBlur={handleblur}
+                    /> :
                     <div ref={textdivnode} className="textdiv" onClick={handleShowTextarea}>{oldtext.current}</div>}
                 </>
 

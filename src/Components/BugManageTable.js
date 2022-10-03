@@ -1,12 +1,12 @@
 import {
-    Button, Col,
+    Button, Col, Input,
     message,
     Pagination,
-    Row,
+    Row, Space,
     Table
 } from 'antd'
-import {PlusOutlined, CaretRightOutlined} from '@ant-design/icons'
-import React, {Fragment, useEffect, useState} from 'react'
+import {PlusOutlined, CaretRightOutlined, SearchOutlined, FilterFilled} from '@ant-design/icons'
+import React, {Fragment, useEffect, useRef, useState} from 'react'
 import BugTableRowExpan from "./BugTableRowExpan"
 import "./BugManageTable.css"
 import TextareaConfirm from "./TextareaConfirm";
@@ -16,7 +16,9 @@ import {useDispatch, useSelector} from "react-redux";
 import axios from "axios";
 import Switcher from "./Switcher";
 import Selector from "./Selector";
-
+import FilterSearchComp from "./FilterSearchComp";
+import "../assets/font-awesome-4.7.0/css/font-awesome.min.css"
+import ResizableTitle from "./ResizableTitle"
 
 const App = () => {
     useEffect(() => {
@@ -25,29 +27,59 @@ const App = () => {
         window.addEventListener("resize", () => {
             if (window.innerWidth < 500) {
                 setfixtable(false)
-                settableheight(window.innerHeight - 250)
-
+                setfinalcolumns((cols) => {
+                    cols.map((itm, index) => {
+                        if (index === 1) {
+                            itm.fixed = false
+                        }
+                        return itm
+                    })
+                    return [...cols]
+                })
+                settableheight(window.innerHeight - 190)
             } else {
                 setfixtable(true)
-                settableheight(window.innerHeight - 370)
+                setfinalcolumns((cols) => {
+                    cols.map((itm, index) => {
+                        if (index === 1) {
+                            itm.fixed = true
+                        }
+                        return itm
+                    })
+                    return [...cols]
+                })
+                settableheight(window.innerHeight - 310)
+            }
+            if (window.innerHeight < 500) {
+                settableheight(window.innerHeight - 190)
+            }else{
+                settableheight(window.innerHeight - 310)
             }
         })
     }, [])
+    const allsearchs = useRef({})
+    const allselects = useRef({})
     const getdata = (type, page = 1, pageSize = 10) => {
-        axios.post("/getBugList", null, {params: {type: "BUG", page, pageSize}}).then((res) => {
+        console.log("getdata", allselects.current, allsearchs.current)
+        axios.post("/getBugList", {
+            type: "BUG",
+            search: JSON.stringify(allsearchs.current),
+            page,
+            pageSize,
+            filter: JSON.stringify(allselects.current)
+        },).then((res) => {
             settableloading(false)
             if (res.data.code === 200) {
                 let temrowkeys = []
-                let temdata = res.data.res.data.map((item) => {
+                let temdata = res.data.res.data.map((item, index) => {
                     item["key"] = item["id"] + ""
+                    item["index"] = (page - 1) * pageSize + index + 1
                     temrowkeys.push(item["key"])
                     return item
                 })
                 setexpandedRowKeys(temrowkeys)
-                console.log(temrowkeys)
                 setpagedata(res.data.res.pagedata)
                 setdata(temdata)
-
             } else {
                 message.error(res.data.res)
             }
@@ -59,26 +91,106 @@ const App = () => {
     }
     const dispatch = useDispatch()
     const [fixtable, setfixtable] = useState(window.innerWidth < 500 ? false : true)
-    const [tableheight, settableheight] = useState(window.innerWidth > 500 ? window.innerHeight - 370 : window.innerHeight - 250)
+    const [tableheight, settableheight] = useState(window.innerWidth > 500&&window.innerHeight > 500 ? window.innerHeight - 310 : window.innerHeight - 190)
     const [data, setdata] = useState([])
     const [pagedata, setpagedata] = useState({})
     const [tableloading, settableloading] = useState(true)
     const [expandedRowKeys, setexpandedRowKeys] = useState([])
     const [currentpage, setcurrentpage] = useState(1)
+    const allFilterInfo=useRef({})
+    const handleTableChange = (pagination, filters, sorter) => {
+        settableloading(true)
+        allFilterInfo.current={...filters}
+        //更新筛选状态每一列的filteredValue
+        setfinalcolumns((cols)=>{
+            Object.keys(allFilterInfo.current).forEach((itm,idx)=>{
+                cols.map((col)=>{
+                    if(col.key===itm){
+                        col.filteredValue=allFilterInfo.current[itm]
+                    }
+                    return col
+                })
+            })
+            return [...cols]
+        })
+        allselects.current = {...filters}
+        Object.keys(filters).forEach((item) => {
+            Object.keys(allsearchs.current).forEach((itm) => {
+                if (item === itm) {
+                    allselects.current[item] = null
+                }
+            })
+        })
+        console.log("handleTableChange",filters, allsearchs.current, allselects.current)
+        getdata()
+    }
+    const clearAllFilters = () => {
+        settableloading(true)
+        allsearchs.current = {}
+        allselects.current = {}
+        getdata()
+    }
+    const handleSearch = (col, data, confirm) => {
+        console.log("handleSearch",data)
+        if (allsearchs.current[col] !== (data[0] ? data[0] : null)) {
+            settableloading(true)
+            allsearchs.current[col] = data[0] ? data[0] : null
+            confirm()
+        } else {
+            message.warn("数据未改变")
+        }
+
+    }
+    const handleResize = (col) => {
+        return (e, {size}) => {
+            setfinalcolumns((columns) => {
+                columns.forEach((item) => {
+                    if (item === col) {
+                        item.width = size.width
+                    }
+                })
+                return [...columns]
+            })
+        }
+    }
+    const SearchFilterreset = (col, confirm) => {
+        settableloading(true)
+        allsearchs.current[col] = null
+        confirm()
+    }
+    const getFilterIcon = (filtered, type) => {
+        switch (type) {
+            case "search":
+                return (
+                    <i style={{
+                        fontSize: 16,
+                        color: filtered ? '#1890ff' : undefined,
+                    }} className="	fa fa-search"/>
+                )
+            case "select":
+                return (
+                    <FilterFilled style={{
+                        fontSize: 16,
+                        color: filtered ? '#1890ff' : undefined,
+                    }}/>
+                )
+        }
+
+    }
     const columns = [
         {
-            title: '编号',
+            title: '序号',
             align: "center",
             width: 85,
-            dataIndex: 'bianhao',
-            key: 'bianhao',
+            dataIndex: 'index',
+            key: 'index',
             render(text, record) {
                 return (<>
                     <Row justify="center" style={{cursor: "pointer"}} align="middle" onClick={(e) => {
                         togglerablerow(e, record)
                     }}>
                         <CaretRightOutlined className="icon-CaretRightOutlined icon"/>
-                        <a>{text}</a>
+                        <a>{record.index}</a>
                     </Row>
                     <Row>
                         <Col style={{width: 120}}>
@@ -95,6 +207,13 @@ const App = () => {
             dataIndex: 'content',
             width: 200,
             fixed: fixtable,
+            filterIcon: (filted) => {
+                return getFilterIcon(filted, "search")
+            },
+            filteredValue: allFilterInfo.current.content || null,
+            filterDropdown: ({setSelectedKeys, selectedKeys, confirm, clearFilters}) => <FilterSearchComp
+                selectedKeys={selectedKeys} setSelectedKeys={setSelectedKeys} confirm={confirm} col="content"
+                SearchFilterreset={SearchFilterreset} handlesearch={handleSearch}/>,
             render(text, record) {
                 return (
                     <TextareaConfirm text={text} col="content" id={record.id}>
@@ -104,9 +223,42 @@ const App = () => {
             }
         },
         {
+            title: '编号',
+            key: 'bianhao',
+            dataIndex: 'bianhao',
+            width: 100,
+            filterIcon: (filted) => {
+                return getFilterIcon(filted, "search")
+            },
+            filteredValue: allFilterInfo.current.bianhao || null,
+            filterDropdown: ({setSelectedKeys, selectedKeys, confirm, clearFilters}) => <FilterSearchComp
+                selectedKeys={selectedKeys} setSelectedKeys={setSelectedKeys} confirm={confirm} col="bianhao"
+                SearchFilterreset={SearchFilterreset} handlesearch={handleSearch}/>,
+            render(text, record) {
+                return (
+                    <TextareaConfirm text={text} col="bianhao" id={record.id}>
+
+                    </TextareaConfirm>
+                )
+            }
+        },
+        {
             title: '问题板块',
             key: 'bankuai',
             width: 160,
+            filterSearch: true,
+            filterIcon: (filted) => {
+                return getFilterIcon(filted, "select")
+            },
+            filteredValue: allFilterInfo.current.bankuai || null,
+            filters: [{
+                text: '安全人员',
+                value: '安全人员',
+            },
+                {
+                    text: '监督检查',
+                    value: '监督检查',
+                },],
             dataIndex: 'bankuai',
             render: (text, record) => (
                 <>
@@ -202,7 +354,7 @@ const App = () => {
             key: 'devcompletetime',
             dataIndex: 'devcompletetime',
             width: 150,
-            render: (text,record) => (
+            render: (text, record) => (
                 <DateSelector value={text} clearable={true} id={record.id} col="devcompletetime"/>
             ),
         },
@@ -233,7 +385,7 @@ const App = () => {
             key: 'upuattime',
             dataIndex: 'upuattime',
             width: 150,
-            render: (text,record) => (
+            render: (text, record) => (
                 <DateSelector value={text} clearable={true} id={record.id} col="upuattime"/>
             ),
         },
@@ -242,7 +394,7 @@ const App = () => {
             key: 'upprodtime',
             dataIndex: 'upprodtime',
             width: 150,
-            render: (text,record) => (
+            render: (text, record) => (
                 <DateSelector value={text} clearable={true} id={record.id} col="upprodtime"/>
             ),
         },
@@ -251,7 +403,7 @@ const App = () => {
             key: 'vertifytime',
             dataIndex: 'vertifytime',
             width: 150,
-            render: (text,record) => (
+            render: (text, record) => (
                 <DateSelector value={text} clearable={true} id={record.id} col="vertifytime"/>
             ),
         },
@@ -281,7 +433,7 @@ const App = () => {
             key: 'testuattime',
             dataIndex: 'testuattime',
             width: 150,
-            render: (text,record) => (
+            render: (text, record) => (
                 <DateSelector value={text} clearable={true} id={record.id} col="testuattime"/>
             ),
         },
@@ -300,7 +452,7 @@ const App = () => {
             key: 'prodtestdate',
             dataIndex: 'prodtestdate',
             width: 150,
-            render: (text,record) => (
+            render: (text, record) => (
                 <DateSelector value={text} clearable={true} id={record.id} col="prodtestdate"/>
             ),
         },
@@ -309,11 +461,15 @@ const App = () => {
             key: 'requirereviewdate',
             dataIndex: 'requirereviewdate',
             width: 150,
-            render: (text,record) => (
+            render: (text, record) => (
                 <DateSelector value={text} clearable={true} id={record.id} col="requirereviewdate"/>
             ),
         }
     ]
+    const [finalcolumns, setfinalcolumns] = useState(columns.map((col, index) => {
+        col.onHeaderCell = () => ({width: col.width, onResize: handleResize(col)})
+        return col
+    }))
     // const data = [
     //     {
     //         key: '0',
@@ -507,9 +663,16 @@ const App = () => {
     return (
         <Fragment>
             <Button type="primary" icon={<PlusOutlined/>} style={{margin: 10}} onClick={showAddBugModal}>提交Bug</Button>
+            <Button type="primary" style={{margin: 10}} onClick={clearAllFilters}>刷新表格</Button>
             <Table pagination={false}
+                   onChange={handleTableChange}
                    loading={tableloading}
-                   columns={columns} dataSource={data} size="small" scroll={{
+                   components={{
+                       header: {
+                           cell: ResizableTitle
+                       }
+                   }}
+                   columns={finalcolumns} dataSource={data} size="small" scroll={{
                 x: 1200,
                 y: tableheight
             }} expandable={{

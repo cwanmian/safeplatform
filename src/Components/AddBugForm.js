@@ -55,10 +55,10 @@ const App = () => {
         >
             <Form.Item
                 label="编号"
+                hidden={true}
                 name="bianhao"
                 rules={[
                     {
-                        required: true,
                         pattern: /^[1-9]\d{0,4}$/,
                         message: "非0开头1-5位数字"
                     },

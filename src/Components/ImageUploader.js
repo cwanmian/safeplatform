@@ -1,7 +1,9 @@
 import {InboxOutlined, PlusOutlined} from '@ant-design/icons';
 import {Image, message, Modal, Upload} from 'antd';
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import axios from "axios";
+import {useSelector} from "react-redux";
+import {GlobalData} from "../GlobalData";
 const { Dragger } = Upload;
 const getBase64 = (file) =>
     new Promise((resolve, reject) => {
@@ -13,7 +15,8 @@ const getBase64 = (file) =>
         reader.onerror = (error) => reject(error);
     });
 
-const App = ({ value = [], onChange }) => {
+const App = (props) => {
+    const { value = [], onChange }=props
     const [previewOpen, setPreviewOpen] = useState(false);
     const [previewImage, setPreviewImage] = useState('');
     const [previewTitle, setPreviewTitle] = useState('');
@@ -22,7 +25,7 @@ const App = ({ value = [], onChange }) => {
     ]);
     const onRemove=(file)=>{
 
-        axios.post("http://localhost:8383/removeimg", {filename:file.uid}).then((res) => {
+        axios.post("/removeimg", {filename:file.uid}).then((res) => {
             if(res.data.code===200){
                 console.log("删除成功")
                 message.success(res.data.res)
@@ -73,7 +76,7 @@ const App = ({ value = [], onChange }) => {
                 multiple={true}
                 onRemove={(file)=>{onRemove(file)}}
                 accept=".png, .jpg, .jpeg"
-                action="http://localhost:8383/recivebugimg"
+                action={GlobalData.AppServerIp+"/recivebugimg"}
                 listType="picture-card"
                 fileList={fileList}
                 data={(file)=>{return {filename:file.uid}}}

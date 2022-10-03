@@ -2,9 +2,8 @@ import {Button, Dropdown, Form, Image, Menu, message, Modal, Row} from "antd";
 import {ExclamationCircleOutlined, FileAddFilled} from "@ant-design/icons";
 import React, {useRef,useState} from "react";
 import axios from "axios";
-import AddImageModal from "./AddImageModal";
-import moment from "moment";
 import ImageUploader from "./ImageUploader";
+import {GlobalData} from "../GlobalData";
 const { confirm } = Modal;
 
 export default ({images,id,col})=>{
@@ -66,6 +65,7 @@ export default ({images,id,col})=>{
             if(res.data.code===200){
                 console.log("插入成功")
                 message.success(res.data.res)
+                console.log([...pics,...newimgarr])
                 setpics([...pics,...newimgarr])
             }else{
                 message.error(res.data.res)
@@ -100,7 +100,7 @@ export default ({images,id,col})=>{
                             <Image
                                 key={index}
                                 height={40}
-                                src={"http://localhost:8383/BugImages/"+itm}
+                                src={GlobalData.AppServerIp+"/BugImages/"+itm}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                 }}

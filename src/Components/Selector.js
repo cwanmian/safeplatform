@@ -3,9 +3,9 @@ import React, {useRef} from "react";
 import {useState} from "react";
 import axios from "axios";
 import {ExclamationCircleOutlined} from "@ant-design/icons";
+import {ProFormSelect} from "@ant-design/pro-components";
 const {Option}=Select
 const { confirm } = Modal;
-
 export default function ({col,id,value}) {
     const [modalText, setModalText] = useState('确定修改么，你的操作将记入日志')
     const [data, setdata] = useState({
@@ -65,7 +65,7 @@ export default function ({col,id,value}) {
             {
                 title: "UAT待测试",
                 color: "volcano"
-            },
+            }
         ],
         shuxing:[
             {
@@ -94,8 +94,8 @@ export default function ({col,id,value}) {
             },
             {
                 title: "新增功能",
-                color: "新增功能"
-            },
+                color: "lime"
+            }
         ],
         timerequire:[
             {
@@ -149,7 +149,7 @@ export default function ({col,id,value}) {
     }
 
     return (
-        <><Select onChange={(value, option)=>{handleSelect(value, option)}} style={{width: 160}} onClick={(e) => {
+        <><Select showSearch onChange={(value, option)=>{handleSelect(value, option)}} style={{width: 160}} onClick={(e) => {
             e.stopPropagation()
         }} showArrow={false} bordered={false} optionLabelProp="children" value={selectvalue}>
             {data[col].map((item,index)=>{

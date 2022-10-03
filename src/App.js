@@ -6,14 +6,14 @@ import 'antd/dist/antd.min.css';
 import "./App.css"
 import {useDispatch, useSelector} from "react-redux";
 import Body1 from "./Body1";
-import BugMangeTable from "./Components/BugMangeTable";
+import BugMangeTable from "./Components/BugManageTable";
 import {useEffect} from "react";
 import axios from "axios";
 import AddBugForm from "./Components/AddBugForm";
-const {Content, Footer, Sider, Header} = Layout;
+const {Content, Sider, Header} = Layout;
 ConfigProvider.config({
     theme: {
-        primaryColor: '#015beb',
+        primaryColor: '#0e7beb',
     },
 });
 const App = () => {
@@ -107,13 +107,15 @@ const App = () => {
     return (
         <Layout className="content">
             <Sider
-                style={{overflow: "hidden"}}
+                // style={{overflow: "hidden"}}
                 breakpoint="lg"
-                collapsedWidth="50"
-                collapsible
+                collapsedWidth={window.innerWidth>500?50:0}
+                width={170}
+                collapsible={true}
                 onCollapse={(v) => {
                     setFullLogo(!v)
                 }}
+                zeroWidthTriggerStyle={{top:10}}
             >
                 {fullLogo ? <div className="logo">
                     BugManager
@@ -129,13 +131,15 @@ const App = () => {
                         dispatch({type: "setMenuActiveKey", data: item.key})
                     }}
                 />}
-
+                <div className="sider-footer">筑信云 ©2022</div>
             </Sider>
             <Layout>
                 <Header
+
                     className="site-layout-background header"
                     style={{
                         padding: 0,
+                        display:fullLogo?"block":"none"
                     }}
                 >
                     {showSkeleton ? "" : <Row justify="end">
@@ -168,13 +172,13 @@ const App = () => {
                         </Drawer>
                     </div>
                 </Content>
-                <Footer className="footer"
-                    style={{
-                        textAlign: 'center',
-                    }}
-                >
-                    筑信云 ©2022 Created by CCWME
-                </Footer>
+                {/*<Footer className="footer"*/}
+                {/*    style={{*/}
+                {/*        textAlign: 'center',*/}
+                {/*    }}*/}
+                {/*>*/}
+                {/*    筑信云 ©2022 Created by CCWME*/}
+                {/*</Footer>*/}
 
             </Layout>
 

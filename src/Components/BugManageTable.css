@@ -17,3 +17,12 @@
 .td-noborder{
     border: 0!important;
 }
+.ant-table-filter-column{
+    margin-right: 10px!important;
+}
+.react-resizable-handle-se{
+    cursor: ew-resize!important;
+}
+.react-resizable-handle{
+    background-image: none!important;
+}

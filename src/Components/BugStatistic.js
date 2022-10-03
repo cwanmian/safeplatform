@@ -3,7 +3,7 @@ import {Card, Col, Row, Statistic} from 'antd';
 import React from 'react';
 import "./BugStatistic.css"
 const App = () => (
-    <Row gutter={16}>
+    <Row gutter={[16,16]}>
         <Col xs={24} sm={12} md={8}>
             <Card className="StatisticCard-1">
                 <Statistic title="今日新增问题" value={11} prefix={<SisternodeOutlined />} />
