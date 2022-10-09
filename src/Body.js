@@ -1,8 +1,6 @@
 import {Tabs} from 'antd';
 import React, {useRef, useState} from 'react';
 import {useSelector, useDispatch} from "react-redux";
-
-const {TabPane} = Tabs;
 const Body = () => {
     const disptch = useDispatch()
     const initialPanes = useSelector(state => state.BodyItemReducer)
@@ -35,7 +33,7 @@ const Body = () => {
     };
     const Tabitems=initialPanes.map((item)=>({label: item.title, key: item.key, children: item.content,closable:item.closable}))
     return (
-        <Tabs size="small" type="editable-card" onChange={onChange} activeKey={activeKey} onEdit={onEdit} items={Tabitems} hideAdd destroyInactiveTabPane={false}>
+        <Tabs style={{height:"100%"}} size="small" type="editable-card" onChange={onChange} activeKey={activeKey} onEdit={onEdit} items={Tabitems} hideAdd destroyInactiveTabPane={false}>
         </Tabs>
     );
 };

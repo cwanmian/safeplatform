@@ -41,7 +41,6 @@ const App = (props) => {
             return false
         })
     }
-    const handleCancel = () => setPreviewOpen(false);
 
     const handlePreview = async (file) => {
         if (!file.url && !file.preview) {
@@ -73,11 +72,10 @@ const App = (props) => {
     return (
         <>
             <Dragger
-                multiple={true}
                 onRemove={(file)=>{onRemove(file)}}
                 accept=".png, .jpg, .jpeg"
                 action={GlobalData.AppServerIp+"/recivebugimg"}
-                listType="picture-card"
+                listType="picture"
                 fileList={fileList}
                 data={(file)=>{return {filename:file.uid}}}
                 method="post"

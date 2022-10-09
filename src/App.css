@@ -95,6 +95,9 @@ textarea::-webkit-scrollbar-thumb:active {
     width: 100%;
     color: #a0a0a0;
     position: absolute;
-    bottom: 50px;
+    bottom: 0;
     text-align: center;
+}
+.ant-layout-sider-children{
+    position: relative;
 }

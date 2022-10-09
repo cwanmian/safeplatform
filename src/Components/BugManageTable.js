@@ -36,7 +36,6 @@ const App = () => {
                     })
                     return [...cols]
                 })
-                settableheight(window.innerHeight - 190)
             } else {
                 setfixtable(true)
                 setfinalcolumns((cols) => {
@@ -48,12 +47,6 @@ const App = () => {
                     })
                     return [...cols]
                 })
-                settableheight(window.innerHeight - 310)
-            }
-            if (window.innerHeight < 500) {
-                settableheight(window.innerHeight - 190)
-            }else{
-                settableheight(window.innerHeight - 310)
             }
         })
     }, [])
@@ -91,22 +84,21 @@ const App = () => {
     }
     const dispatch = useDispatch()
     const [fixtable, setfixtable] = useState(window.innerWidth < 500 ? false : true)
-    const [tableheight, settableheight] = useState(window.innerWidth > 500&&window.innerHeight > 500 ? window.innerHeight - 310 : window.innerHeight - 190)
     const [data, setdata] = useState([])
     const [pagedata, setpagedata] = useState({})
     const [tableloading, settableloading] = useState(true)
     const [expandedRowKeys, setexpandedRowKeys] = useState([])
     const [currentpage, setcurrentpage] = useState(1)
-    const allFilterInfo=useRef({})
+    const allFilterInfo = useRef({})
     const handleTableChange = (pagination, filters, sorter) => {
         settableloading(true)
-        allFilterInfo.current={...filters}
+        allFilterInfo.current = {...filters}
         //更新筛选状态每一列的filteredValue
-        setfinalcolumns((cols)=>{
-            Object.keys(allFilterInfo.current).forEach((itm,idx)=>{
-                cols.map((col)=>{
-                    if(col.key===itm){
-                        col.filteredValue=allFilterInfo.current[itm]
+        setfinalcolumns((cols) => {
+            Object.keys(allFilterInfo.current).forEach((itm, idx) => {
+                cols.map((col) => {
+                    if (col.key === itm) {
+                        col.filteredValue = allFilterInfo.current[itm]
                     }
                     return col
                 })
@@ -121,7 +113,7 @@ const App = () => {
                 }
             })
         })
-        console.log("handleTableChange",filters, allsearchs.current, allselects.current)
+        console.log("handleTableChange", filters, allsearchs.current, allselects.current)
         getdata()
     }
     const clearAllFilters = () => {
@@ -131,7 +123,7 @@ const App = () => {
         getdata()
     }
     const handleSearch = (col, data, confirm) => {
-        console.log("handleSearch",data)
+        console.log("handleSearch", data)
         if (allsearchs.current[col] !== (data[0] ? data[0] : null)) {
             settableloading(true)
             allsearchs.current[col] = data[0] ? data[0] : null
@@ -662,8 +654,10 @@ const App = () => {
     }
     return (
         <Fragment>
-            <Button type="primary" icon={<PlusOutlined/>} style={{margin: 10}} onClick={showAddBugModal}>提交Bug</Button>
-            <Button type="primary" style={{margin: 10}} onClick={clearAllFilters}>刷新表格</Button>
+            <div style={{overflowX:"auto",padding:0,whiteSpace: "nowrap"}}>
+                <Button type="primary" icon={<PlusOutlined/>} style={{margin: 10}} onClick={showAddBugModal}>提交Bug</Button>
+                <Button type="ghost" style={{margin: 10}} onClick={clearAllFilters}>刷新表格</Button>
+            </div>
             <Table pagination={false}
                    onChange={handleTableChange}
                    loading={tableloading}
@@ -674,7 +668,7 @@ const App = () => {
                    }}
                    columns={finalcolumns} dataSource={data} size="small" scroll={{
                 x: 1200,
-                y: tableheight
+                y: useSelector((state) => state.IsFullScreenReducer.isFullScreen) ? window.innerHeight - 239 : window.innerHeight - 303
             }} expandable={{
                 expandedRowKeys: expandedRowKeys,
                 expandedRowRender: (record) => (<BugTableRowExpan {...record}/>),

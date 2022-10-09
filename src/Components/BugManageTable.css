@@ -21,7 +21,7 @@
     margin-right: 10px!important;
 }
 .react-resizable-handle-se{
-    cursor: ew-resize!important;
+    cursor: col-resize!important;
 }
 .react-resizable-handle{
     background-image: none!important;

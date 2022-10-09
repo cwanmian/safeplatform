@@ -6,13 +6,20 @@ import ImageUploader from "./ImageUploader";
 import 'moment/locale/zh-cn';
 import locale from 'antd/es/date-picker/locale/zh_CN';
 import axios from "axios";
+import {useDispatch} from "react-redux";
 
 const {Option} = Select
 const dateFormat = 'YYYY-MM-DD';
 const App = () => {
+    const dispatch=useDispatch()
+    const CloseAddForm=()=>{
+        dispatch({type:"close"})
+    }
     const onFinish = (values) => {
         console.log('Received values of form: ', values);
         const {images,startdate}=values
+
+
         const newimgs=JSON.stringify(images.map((item)=>{
             return item.uid+".jpg"
         }))
@@ -21,6 +28,7 @@ const App = () => {
             if(res.data.code===200){
                 console.log("插入成功")
                 message.success(res.data.res)
+                CloseAddForm()
             }else{
                 message.error(res.data.res)
             }
