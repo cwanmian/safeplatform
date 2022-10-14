@@ -18,6 +18,9 @@ ConfigProvider.config({
     },
 });
 const App = () => {
+    useEffect(()=>{
+        getuserinfo()
+    },[])
     axios.defaults.baseURL = "http://localhost:8383"
     const [userinfo, setuserinfo] = useState({})
     const [showSkeleton, setshowSkeleton] = useState(!true)
@@ -132,14 +135,13 @@ const App = () => {
             </Sider>
             <Layout>
                 <Header
-
                     className="site-layout-background header"
                     style={{
                         padding: 0,
                         display: fullLogo ? "block" : "none"
                     }}
                 >
-                    {showSkeleton ? "" : <Row justify="end">
+                    {showSkeleton ? "" : <Row justify="end" gutter="36px">
                         <Col>
                             <Dropdown overlay={Avatarmenu} placement="bottom" trigger={['click']}>
                                 <Space size="small" style={{cursor: "pointer", userSelect: "none"}}>
@@ -148,6 +150,7 @@ const App = () => {
                                 </Space>
                             </Dropdown>
                         </Col>
+                        <Col span={1}></Col>
                     </Row>}
                 </Header>
                 <Content
